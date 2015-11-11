@@ -66,6 +66,8 @@ class TwitterAccount:
             'followers': limits['resources']['followers']['/followers/ids'],
             'statuses': limits['resources']['statuses']\
                               ['/statuses/user_timeline']
+			'search': limits['resources']['search']\
+							['/search/tweets']
         }
 
     def check_rate_limits(self, rate_limits, resources):
