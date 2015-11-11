@@ -1,4 +1,7 @@
 # Analysis of stock prices and networks of stock advertisers in Twitter
+##
+
+
 
 ### Goal
 We would then like to look at specific cases of stocks that have been advertised on Twitter and see if negative or positive tweets have an effect on the stock price.
