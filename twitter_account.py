@@ -41,37 +41,36 @@ class TwitterAccount:
 ........"""
 
 		limits = self.api.rate_limit_status( \
-					resources='users,followers,statuses,application')
-        if limits['resources']['application'] \
-                  ['/application/rate_limit_status']['remaining'] <= 0:
-            print ("  Rate limit exceded, resets to {} at {:%m/%d/%Y %H:%M}"\
-                        .format(limits['resources']['application']\
-                            ['/application/rate_limit_status']['limit'],\
-                        datetime.datetime.fromtimestamp(limits['resources']\
-                            ['application']\
-                            ['/application/rate_limit_status']['reset']))
-            )
-            self.sleep_until(datetime.datetime.fromtimestamp(\
-			                    limits['resources']\
-                                      ['application']\
-                                      ['/application/rate_limit_status']\
-                                      ['reset']))
+					resources='users,followers,statuses,application,search')
+		if limits['resources']['application'] \
+				  ['/application/rate_limit_status']['remaining'] <= 0:
+			print ("  Rate limit exceded, resets to {} at {:%m/%d/%Y %H:%M}"\
+						.format(limits['resources']['application']\
+							['/application/rate_limit_status']['limit'],\
+						datetime.datetime.fromtimestamp(limits['resources']\
+							['application']\
+							['/application/rate_limit_status']['reset']))
+			)
+			self.sleep_until(datetime.datetime.fromtimestamp(\
+								limits['resources']\
+									  ['application']\
+									  ['/application/rate_limit_status']\
+									  ['reset']))
 
-        remain_search_limits = limits['resources']['users']\
-                                     ['/users/show/:id']['remaining']
+		remain_search_limits = limits['resources']['users']\
+									 ['/users/show/:id']['remaining']
 
-        return {
-            'users': limits['resources']['users']['/users/show/:id'],
-            'followers': limits['resources']['followers']['/followers/ids'],
-            'statuses': limits['resources']['statuses']\
-                              ['/statuses/user_timeline'],
+		return {
+			'users': limits['resources']['users']['/users/show/:id'],
+			'followers': limits['resources']['followers']['/followers/ids'],
+			'statuses': limits['resources']['statuses']\
+							  ['/statuses/user_timeline'],
 			'search': limits['resources']['search']\
 							['/search/tweets']
-        }
+		}
 
-    def check_rate_limits(self, rate_limits, resources):
-        """
->>>>>>> 3a96005c223de4e20ec909b45caeee8836379bfe
+	def check_rate_limits(self, resources):
+		"""
 ........Checks the rate limit for a specific resource given
 ........a rate limits dictionary. If the remaining requests for
 ........the resource exceeds the program will sleep until
@@ -166,9 +165,12 @@ class TwitterAccount:
 		query = "${}".format(symbol)
 		if self.check_rate_limits('search'):
 			try:
-				return self.api.search(symbol)
+				return self.api.search(query, count=100)
 			except tweepy.TweepError as e:
 				print e.response_status
+		else:
+			self.sleep_until()
+			self.get_tweets_from_user(symbol)
 	
 	def get_tweets_from_user(self, user_id, number_of_tweets):
 		"""
