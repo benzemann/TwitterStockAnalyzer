@@ -28,6 +28,8 @@ class TwitterAccount:
         self.auth.set_access_token(OAUTH_TOKEN, OAUTH_TOKEN_SECRET)
         self.api = tweepy.API(self.auth)
         self.screen_name = screen_name
+		
+		self.limits = self.update_rate_limits();
 
     def update_rate_limits(self):
         """
@@ -40,7 +42,7 @@ class TwitterAccount:
 
         limits = self.api.rate_limit_status( \
                     resources='users,followers,statuses,application')
-
+		
         if limits['resources']['application'] \
                   ['/application/rate_limit_status']['remaining'] <= 0:
             print ("  Rate limit exceded, resets to {} at {:%m/%d/%Y %H:%M}"\
@@ -73,6 +75,7 @@ class TwitterAccount:
 ........the resource exceeds the program will sleep until
 ........it resets. The second input is which resource to check.
 ........"""
+		rate_limits = self.limits
         if rate_limits[resources]['remaining'] <= 0:
             print "  Rate limit exceded, resets to {} at {:%m/%d/%Y %H:%M}"\
                 .format(
@@ -94,18 +97,18 @@ class TwitterAccount:
 ........Returns a list of follower ids of the input user name.
 ........"""
         followers = []
-        limits = self.update_rate_limits()
+		
+		self.limits = self.update_rate_limits()
 
-        if self.check_rate_limits(limits, 'followers'):
+        if self.check_rate_limits('followers'):
 
             for page in tweepy.Cursor(self.api.followers_ids,\
                                       screen_name=user_screen_name)\
 									  .pages():
-                limits = self.update_rate_limits()
+                #self.limits = self.update_rate_limits()
 
-                if not self.check_rate_limits(limits, 'followers'):
-                    self.sleep_until(datetime.datetime.fromtimestamp(\
-                                        limits['followers']['reset']))
+                if not self.check_rate_limits('followers'):
+                    self.sleep_until()
 
                 followers_temp = []
                 followers_temp.append(page)
@@ -114,8 +117,7 @@ class TwitterAccount:
                     followers.append(ids)
 
         else:
-            self.sleep_until(datetime.datetime.fromtimestamp(\
-                                limits['followers']['reset']))
+            self.sleep_until()
             self.get_followers_of_user(user_screen_name)
 
         return followers
@@ -125,7 +127,7 @@ class TwitterAccount:
 ........Returns the user object of a user given the user id.
 ........Also it needs a dictionary of requests limits.
 ........"""
-        if self.check_rate_limits(limits, 'users'):
+        if self.check_rate_limits('users'):
             user = 0
             try:
                 user = self.api.get_user(id)
@@ -140,8 +142,7 @@ class TwitterAccount:
                     return 0
             return user
         else:
-            self.sleep_until(datetime.datetime.fromtimestamp(\
-                                limits['users']['reset']))
+            self.sleep_until()
             user = 0
             try:
                 user = self.api.get_user(id)
@@ -163,8 +164,7 @@ class TwitterAccount:
 ........tweets which should be returned.
 ........"""
         tweets = []
-        limits = self.update_rate_limits()
-        user = self.get_user(user_id, limits)
+        user = self.get_user(user_id, self.limits)
 
         # Handles if the user has a protected account or
 		# another error (user = 0)
@@ -175,7 +175,7 @@ class TwitterAccount:
             tweets.append(' ')
             return tweets
 
-        if self.check_rate_limits(limits, 'statuses'):
+        if self.check_rate_limits('statuses'):
             try:
                 tweets_temp = self.api.user_timeline(\
                                 user_id, count=number_of_tweets)
@@ -190,17 +190,18 @@ class TwitterAccount:
                 elif tweet.text[0] != "R" and tweet.text[1] != "T":
                     tweets.append(tweet.text)
         else:
-            self.sleep_until(datetime.datetime.fromtimestamp(\
-                                limits['statuses']['reset']))
+            self.sleep_until()
             self.get_tweets_from_user(user_id, number_of_tweets)
 
         return tweets
 
-    def sleep_until(self, wake_up_datetime, max_sleep_interval=60):
+    def sleep_until(self, max_sleep_interval=60):
         """
 ........The program will sleep until the time reaches a given time stamp.
 ........Input is the wake up time and the maximum sleep interval.
 ........"""
+		self.limits = self.update_rate_limits()
+		wake_up_datetime = datetime.datetime.fromtimestamp(limits['statuses']['reset'])
         while True:
             # Calculate the seconds until wake up plus a 4 second
 			# buffer for security
