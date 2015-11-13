@@ -1,5 +1,6 @@
 import twitter_account as ta
 import pickle
+import os 
 
 tweets = []
 stock_symbols = []
