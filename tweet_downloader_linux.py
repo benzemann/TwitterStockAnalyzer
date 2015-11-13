@@ -15,12 +15,11 @@ stock_symbols = stocks.split('\n')
 for stock in stock_symbols:
 	print stock
 	with open(cwd + '/random_stock_tweets/' + stock, 'r') as f:
-		try:
-			all_stock_tweets = pickle.load(f)
-			for tweet in all_stock_tweets:
-				tweets.append(tweet)
-		except:
-			print 'error'
+		
+		all_stock_tweets = pickle.load(f)
+		for tweet in all_stock_tweets:
+			tweets.append(tweet)
+		
 		
 	f.close()
 	
@@ -49,7 +48,7 @@ for user in user_ids[999:1010]:
 	for tweet in tweets_from_user:
 		all_tweets.append(tweet)
 	c += 1
-	if(c == 10):
+	if(c == 180):
 		with open('all_tweets_1000_to_5000', 'wb') as f:
 			pickle.dump(all_tweets ,f)
 		f.close()
