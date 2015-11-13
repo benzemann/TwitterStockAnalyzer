@@ -21,6 +21,8 @@ user_ids = []
 for tweet in tweets:
 	user = tweet.user
 	user_ids.append(user.id)
+	
+user_ids = set(user_ids)
 
 CONSUMER_KEY = 'Hn0iMOMPedfHJCW1BNKUcqWuQ'
 CONSUMER_SECRET = 'xZQPkeNXylBO9ACnfYF9CQUmYbqJFzN7EOlsoHRATOY76ycCoW'
@@ -37,15 +39,16 @@ twitter_acc = ta.TwitterAccount(CONSUMER_KEY,
 							
 all_tweets = []
 c = 0
-for user in user_ids[:1000]:
+for user in user_ids:
 	tweets_from_user = twitter_acc.get_tweets_from_user(user, 100)
 	for tweet in tweets_from_user:
 		all_tweets.append(tweet)
 	c += 1
-	if(c == 180):
-		with open('all_tweets_0_to_1000', 'wb') as f:
+	if(c % 180 == 0):
+		print (c*1.0)/(len(user_ids) * 1.0) * 100.0
+		with open('all_tweets', 'wb') as f:
 			pickle.dump(all_tweets ,f)
 		f.close()
-with open('all_tweets_0_to_1000', 'wb') as f:
+with open('all_tweets', 'wb') as f:
 	pickle.dump(all_tweets ,f)
 f.close()
