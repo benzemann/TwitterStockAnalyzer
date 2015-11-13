@@ -13,7 +13,7 @@ f.close()
 stock_symbols = stocks.split('\n')
 
 for stock in stock_symbols:
-	with open(cwd + '\\random_stock_tweets\\' + stock, 'r') as f:
+	with open(cwd + '/random_stock_tweets/' + stock, 'r') as f:
 		all_stock_tweets = pickle.load(f)
 		for tweet in all_stock_tweets:
 			tweets.append(tweet)
