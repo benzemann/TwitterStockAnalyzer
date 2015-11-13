@@ -14,7 +14,7 @@ stock_symbols = stocks.split('\n')
 
 for stock in stock_symbols:
 	print stock
-	with open(cwd + '/random_stock_tweets/' + stock, 'wb') as f:
+	with open(cwd + '/random_stock_tweets/' + stock, 'rb') as f:
 		
 		all_stock_tweets = pickle.load(f)
 		for tweet in all_stock_tweets:
