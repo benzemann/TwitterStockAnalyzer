@@ -76,20 +76,20 @@ class TwitterAccount:
 ........the resource exceeds the program will sleep until
 ........it resets. The second input is which resource to check.
 ........"""
-		rate_limits = self.limits
-		if rate_limits[resources]['remaining'] <= 0:
+		self.limits[resources]['remaining'] -= 1
+		if self.limits[resources]['remaining'] <= 0:
 			print "  Rate limit exceded, resets to {} at {:%m/%d/%Y %H:%M}"\
 				.format(
-					rate_limits[resources]['limit'],
+					self.limits[resources]['limit'],
 					datetime.datetime.fromtimestamp(\
-						rate_limits[resources]['reset'])
+						self.limits[resources]['reset'])
 			)
 			return False
 		else:
 			print "  {} {} requests remaining until {:%m/%d/%Y %H:%M}".format(
-				rate_limits[resources]['remaining'],
+				self.limits[resources]['remaining'],
 				resources,
-				datetime.datetime.fromtimestamp(rate_limits[resources]['reset'])
+				datetime.datetime.fromtimestamp(self.limits[resources]['reset'])
 			)
 			return True
 
@@ -215,8 +215,7 @@ class TwitterAccount:
 ........The program will sleep until the time reaches a given time stamp.
 ........Input is the wake up time and the maximum sleep interval.
 ........"""
-		self.limits = self.update_rate_limits()
-		wake_up_datetime = datetime.datetime.fromtimestamp(limits['statuses']['reset'])
+		wake_up_datetime = datetime.datetime.fromtimestamp(self.limits['statuses']['reset'])
 		while True:
 			# Calculate the seconds until wake up plus a 4 second
 			# buffer for security
@@ -232,7 +231,7 @@ class TwitterAccount:
 					.format(seconds_until_wake, sleep_seconds)
 
 			time.sleep(sleep_seconds)
-
+		self.limits = self.update_rate_limits()
 		print "  Waking up"
 
 
