@@ -10,7 +10,7 @@ with open('list_of_stocks.txt', 'r') as f:
 	stocks = f.read()
 f.close()
 
-stock_symbols = stocks.split('\r')
+stock_symbols = stocks.split('\n')
 
 for stock in stock_symbols:
 	with open(cwd + '\\random_stock_tweets\\' + stock, 'r') as f:
