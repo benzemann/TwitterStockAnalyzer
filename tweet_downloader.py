@@ -1,6 +1,5 @@
 import twitter_account as ta
 import pickle
-import os 
 
 tweets = []
 stock_symbols = []
@@ -38,15 +37,15 @@ twitter_acc = ta.TwitterAccount(CONSUMER_KEY,
 							
 all_tweets = []
 c = 0
-for user in user_ids[:100]:
+for user in user_ids[:1000]:
 	tweets_from_user = twitter_acc.get_tweets_from_user(user, 100)
 	for tweet in tweets_from_user:
 		all_tweets.append(tweet)
 	c += 1
-	if(c == 10):
-		with open('all_tweets', 'wb') as f:
+	if(c == 180):
+		with open('all_tweets_0_to_1000', 'wb') as f:
 			pickle.dump(all_tweets ,f)
 		f.close()
-with open('all_tweets', 'wb') as f:
+with open('all_tweets_0_to_1000', 'wb') as f:
 	pickle.dump(all_tweets ,f)
 f.close()

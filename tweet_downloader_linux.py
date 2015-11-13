@@ -13,6 +13,7 @@ f.close()
 stock_symbols = stocks.split('\n')
 
 for stock in stock_symbols:
+	print stock
 	with open(cwd + '/random_stock_tweets/' + stock, 'r') as f:
 		all_stock_tweets = pickle.load(f)
 		for tweet in all_stock_tweets:
@@ -24,11 +25,11 @@ for tweet in tweets:
 	user = tweet.user
 	user_ids.append(user.id)
 
-CONSUMER_KEY = 'Hn0iMOMPedfHJCW1BNKUcqWuQ'
-CONSUMER_SECRET = 'xZQPkeNXylBO9ACnfYF9CQUmYbqJFzN7EOlsoHRATOY76ycCoW'
-OAUTH_TOKEN = '839939725-zqkCf8B0PIxMP9BdMsmGdGvWMirJ2S76V0DokguG'
-OAUTH_TOKEN_SECRET = 'pzLREI6VXAECXWgych06PQ4rgTO96pPJSNBFKIktLilgy'
-screen_name = 'benzemann'
+CONSUMER_KEY = 'Kfn5jzo4oEOthNVXsHXOiM9d5'
+CONSUMER_SECRET = 'wsxon5zr2aoheV2DeQq1dcZBba0HFXLLAds3C4U7i7yxjABkAZ'
+OAUTH_TOKEN = '94603287-cEGmUZY7zpsMiQbbHGfXJWiQRsg0gBhpmIYBSQF8N'
+OAUTH_TOKEN_SECRET = 'IgEPDbSDWAtw9sx8EgmTOq2uXCBE6dobYCeBCgAy0GoIp'
+screen_name = 'simon'
 	
 twitter_acc = ta.TwitterAccount(CONSUMER_KEY, 
 								CONSUMER_SECRET, 
@@ -39,15 +40,15 @@ twitter_acc = ta.TwitterAccount(CONSUMER_KEY,
 							
 all_tweets = []
 c = 0
-for user in user_ids[:100]:
+for user in user_ids[999:1010]:
 	tweets_from_user = twitter_acc.get_tweets_from_user(user, 100)
 	for tweet in tweets_from_user:
 		all_tweets.append(tweet)
 	c += 1
 	if(c == 10):
-		with open('all_tweets', 'wb') as f:
+		with open('all_tweets_1000_to_5000', 'wb') as f:
 			pickle.dump(all_tweets ,f)
 		f.close()
-with open('all_tweets', 'wb') as f:
+with open('all_tweets_1000_to_5000', 'wb') as f:
 	pickle.dump(all_tweets ,f)
 f.close()
