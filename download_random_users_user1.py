@@ -34,6 +34,7 @@ while len([f for f in listdir(UNPROCESSED_PATH) if isfile(join(UNPROCESSED_PATH,
 	# Get the names of all the pickled stocks
 	stocks = {f: load_stock(f) for f in listdir(UNPROCESSED_PATH) if isfile(join(UNPROCESSED_PATH,f))}
 	symbol = random.sample(stocks, 1)[0]
+	# Set this stock to being processed
 	rename(UNPROCESSED_PATH + symbol, PROCESSING_PATH + symbol)
 	stock_tweets = stocks[symbol]
 	print "Remaining stocks: {}".format(len(stocks))
@@ -71,4 +72,5 @@ while len([f for f in listdir(UNPROCESSED_PATH) if isfile(join(UNPROCESSED_PATH,
 		print e
 		pass
 	finally:
+		# Move the user from processing to processed
 		rename(PROCESSING_PATH + symbol, PROCESSED_PATH + symbol)
