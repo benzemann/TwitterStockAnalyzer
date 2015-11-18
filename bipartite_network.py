@@ -3,7 +3,7 @@ from networkx.algorithms import bipartite
 import pickle
 from os import listdir
 from os.path import isfile, join
-import * from collections
+from collections import *
 
 PROCESSED_PATH = "random_stock_tweets/processed/"
 USER_PATH = "random_stock_users/"
@@ -27,8 +27,13 @@ G = nx.Graph()
 G.add_nodes_from(stocks.keys(), bipartite=0)
 # Add all users
 G.add_nodes_from(users.keys(), bipartite=1)
-for (symbol, stock_tweet) in stocks.iteritems():
+for (symbol, stock_tweets) in stocks.iteritems():
 	# Find the users that tweeted about this stock
 	user_ids = set([tweet.author.id_str for tweet in stock_tweets])
-	G.add_edges_from([(symbol, user) for user in user_ids])
+	G.add_edges_from([(symbol, user) for user in user_ids if user in users.keys()])
+
+# Create the user network from the bipartite network
+stock_nodes = set(n for n,d in G.nodes(data=True) if d['bipartite']==0)
+user_nodes = set(G) - stock_nodes
+U = bipartite.projected_graph(G, user_nodes)
 
