@@ -6,6 +6,7 @@ import numpy as np
 import json
 import requests
 from matplotlib.dates import DateFormatter, WeekdayLocator, DayLocator, YearLocator, MonthLocator
+import classifier
 
 def get_historical_data(symbol, start_date, end_date):
 	share = Share(symbol)
@@ -99,7 +100,7 @@ def get_tweets_from_symbol(api, symbol, number_of_tweets=100000):
 	tweets = []
 	try:
 		for fetched_tweets in tweepy.Cursor(api.search, symbol, count=100).pages():
-			print "Fetched {} tweets".format(len(fetched_tweets))
+			#print "Fetched {} tweets".format(len(fetched_tweets))
 			for tweet in fetched_tweets:
 				tweets.append(tweet)
 			if(len(tweets) >= number_of_tweets):
@@ -176,7 +177,7 @@ def get_tweet_volume(tweets):
 			tweet_count = 0
 			old_date = tweet_date
 	return tweet_volume
-
+# Returns a list of lists with [dates, prices, volume, tweets count]
 def get_dates_price_volume_tweetcount_lists(api, symbol):
 	tweets = get_tweets_from_symbol(api, '$' + symbol, 100000)
 
@@ -188,18 +189,47 @@ def get_dates_price_volume_tweetcount_lists(api, symbol):
 											tweet_dates)
 	
 	tweet_volume = get_tweet_volume(tweets)
+	
+	bear_bull_ratio = get_per_day_bear_bull_ratio(tweets)
+	
 	if (len(tweet_dates) != len(stock_data[0]) or 
 		len(tweet_dates) != len(stock_data[1]) or 
-		len(tweet_dates) != len(tweet_volume)
+		len(tweet_dates) != len(tweet_volume) or
+		len(tweet_dates) != len(bear_bull_ratio)
 		):
 		print 'Some of the lists are not of the same length!'
-	return [tweet_dates, stock_data[0], stock_data[1], tweet_volume]
+	return [tweet_dates, stock_data[0], stock_data[1], tweet_volume, bear_bull_ratio]
 
 def get_tweet_text_list(tweets):
 	tweet_text = []
 	for tweet in tweets:
 		tweet_text.append(tweet.text)
 	return tweet_text
+
+def get_bear_bull_ratio(tweet_text):
+	tweet_classified = classifier.score_tweets(tweet_text)
+	bear_bull_tweets = classifier.get_bear_bull(tweet_classified)
+	if len(bear_bull_tweets[1]) != 0:
+		return float(len(bear_bull_tweets[0])) / float(len(bear_bull_tweets[1]))
+	else:
+		return len(bear_bull_tweets[0])
+
+def get_per_day_bear_bull_ratio(tweets):
+	old_day = 0
+	day_tweets = []
+	bear_bull_ratio = []
+	for tweet in reversed(tweets):
+		tweet_date = str(tweet.created_at).split(' ')[0]
+		day = int(tweet_date.split('-')[2])
+		day_tweets.append(tweet.text)
+		if (old_day == 0):
+			old_day = day
+		if (old_day > day or old_day < day):
+			ratio = get_bear_bull_ratio(day_tweets)
+			bear_bull_ratio.append(ratio)
+			old_day = day
+	return bear_bull_ratio
+	
 CONSUMER_KEY = 'Hn0iMOMPedfHJCW1BNKUcqWuQ'
 CONSUMER_SECRET = 'xZQPkeNXylBO9ACnfYF9CQUmYbqJFzN7EOlsoHRATOY76ycCoW'
 OAUTH_TOKEN = '839939725-zqkCf8B0PIxMP9BdMsmGdGvWMirJ2S76V0DokguG'
@@ -208,31 +238,42 @@ screen_name1 = 'benzemann'
 
 auth = tweepy.AppAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
 api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
-
+symbols = ['EBAY']
+print get_dates_price_volume_tweetcount_lists(api, 'EBAY')
 #data = get_dates_price_volume_tweetcount_lists(api, 'ALKS')
-tweets = get_tweets_from_symbol(api, '$' + 'ALKS')
-print get_tweet_text_list(tweets)[1]
+# for symbol in symbols:
+	# tweets = get_tweets_from_symbol(api, '$' + symbol)
+	# tweet_text = get_tweet_text_list(tweets)
+	
 
+	# start_date = str(tweets[0].created_at).split(' ')[0].split('-')
+	# end_date = str(tweets[-1].created_at).split(' ')[0].split('-')
 
+	# tweet_volume = []
+	# old_date = (0,0,0)
+	# tweet_count = 0
+	# day_tweets = []
+	# for tweet in reversed(tweets):
+		# tweet_date = str(tweet.created_at).split(' ')[0].split('-')
+		# tweet_date = ( int(tweet_date[0]) ,  int(tweet_date[1])  , int(tweet_date[2])) 
+		# tweet_count += 1
+		# day_tweets.append(tweet.text)
+		# if (old_date[2] == 0):
+			# old_date = tweet_date
+		# if (old_date[2] > tweet_date[2] or old_date[2] < tweet_date[2]):
+			# tweet_volume.append(tweet_count)
+			# tweet_count = 0
+			# old_date = tweet_date
+			# tweet_classified = classifier.score_tweets(day_tweets)
+			# bear_bull_tweets = classifier.get_bear_bull(tweet_classified)
+			# print 'bull bear ratio ' + str(len(bear_bull_tweets[0])) + ' / ' + str(len(bear_bull_tweets[1]))
+			# if len(bear_bull_tweets[1]) != 0:
+				# print float(len(bear_bull_tweets[0])) / float(len(bear_bull_tweets[1]))
+			# else:
+				# print len(bear_bull_tweets[0])
+			# day_tweets = []
+	# #print tweet_volume	
+	# start_date = ( int(start_date[0]) ,  int(start_date[1])  , int(start_date[2])) 
+	# end_date =  ( int(end_date[0]) , int(end_date[1]) , int(end_date[2]) )
 
-# start_date = str(tweets[0].created_at).split(' ')[0].split('-')
-# end_date = str(tweets[-1].created_at).split(' ')[0].split('-')
-
-# tweet_volume = []
-# old_date = (0,0,0)
-# tweet_count = 0
-# for tweet in reversed(tweets):
-	# tweet_date = str(tweet.created_at).split(' ')[0].split('-')
-	# tweet_date = ( int(tweet_date[0]) ,  int(tweet_date[1])  , int(tweet_date[2])) 
-	# tweet_count += 1
-	# if (old_date[2] == 0):
-		# old_date = tweet_date
-	# if (old_date[2] > tweet_date[2] or old_date[2] < tweet_date[2]):
-		# tweet_volume.append(tweet_count)
-		# tweet_count = 0
-		# old_date = tweet_date
-# #print tweet_volume	
-# start_date = ( int(start_date[0]) ,  int(start_date[1])  , int(start_date[2])) 
-# end_date =  ( int(end_date[0]) , int(end_date[1]) , int(end_date[2]) )
-
-# plot_stock_date('GOOGL',end_date, start_date, tweet_volume)
+	# plot_stock_date(symbol,end_date, start_date, tweet_volume)

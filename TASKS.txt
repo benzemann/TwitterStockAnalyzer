@@ -1,0 +1,9 @@
+- Finish webapp
+	- Show price
+	- show volume
+	- show tweet count
+	- show bull bear ratio (stacked graph)
+	- show bull bear ratio for all days (funny image/ pie chart)
+	- Show network with highlighted nodes
+
+	
