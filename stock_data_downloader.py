@@ -194,7 +194,12 @@ def get_dates_price_volume_tweetcount_lists(api, symbol):
 		):
 		print 'Some of the lists are not of the same length!'
 	return [tweet_dates, stock_data[0], stock_data[1], tweet_volume]
-	
+
+def get_tweet_text_list(tweets):
+	tweet_text = []
+	for tweet in tweets:
+		tweet_text.append(tweet.text)
+	return tweet_text
 CONSUMER_KEY = 'Hn0iMOMPedfHJCW1BNKUcqWuQ'
 CONSUMER_SECRET = 'xZQPkeNXylBO9ACnfYF9CQUmYbqJFzN7EOlsoHRATOY76ycCoW'
 OAUTH_TOKEN = '839939725-zqkCf8B0PIxMP9BdMsmGdGvWMirJ2S76V0DokguG'
@@ -204,9 +209,9 @@ screen_name1 = 'benzemann'
 auth = tweepy.AppAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
 api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
 
-data = get_dates_price_volume_tweetcount_lists(api, 'AAPL')
-
-print data
+#data = get_dates_price_volume_tweetcount_lists(api, 'ALKS')
+tweets = get_tweets_from_symbol(api, '$' + 'ALKS')
+print get_tweet_text_list(tweets)[1]
 
 
 
