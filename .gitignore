@@ -1,2 +1,4 @@
 *.pyc
 .ipynb_checkpoints/
+random_stock_tweets/
+random_stock_users/
