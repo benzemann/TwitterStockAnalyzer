@@ -65,11 +65,3 @@ def file_dump(l):
     return
 
 
-import string
-def csv_dump(word_count):
-# save resulting words in a csv document
-
-	with open("./classifier/word_count.csv","w") as f:
-		for (w,c) in word_count:
-			f.write(w.encode('utf-8')+';'+str(c)+'\n')
-	
