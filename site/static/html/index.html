@@ -16,55 +16,108 @@
 <head>
   <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.6.0/pure-min.css">
   <link href="/static/css/c3.css" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="/static/css/site.css" type="text/css">
 </head>
 <body>
-  <div class="pure-g">
-    <div class="pure-u-2-3" id="user-graph"></div>
-    <div class="pure-u-1-3">
-      <h2>Twitters stock advertisers</h2>
-      <p>Twitter has a large base of users that simply talk about and promote stock. By looking at what stocks they tweet about we find that some of the most frequent tweeters are related to each other in that they always tweet about the same stocks. This possibly means that these twitter acounts are either fakes, paid to promote specific stocks or connected in a community of interest.</p>
+  <div class="container">
+    <form class="pure-form" id="select-stock">
+      <legend>Select a stock symbol to search for</legend>
+      <input type="text" placeholder="$AAPL">
+      <button type="submit" class="pure-button pure-button-primary">Get data</button>
+    </form>
+    <div id="progress-indicator"></div>
+    <div class="pure-g">
+      <div class="pure-u-2-3" id="user-graph"></div>
+      <div class="pure-u-1-3">
+        <h2>Twitters stock advertisers</h2>
+        <p>Twitter has a large base of users that simply talk about and promote stock. By looking at what stocks they tweet about we find that some of the most frequent tweeters are related to each other in that they always tweet about the same stocks. This possibly means that these twitter acounts are either fakes, paid to promote specific stocks or connected in a community of interest.</p>
+      </div>
     </div>
-  </div>
-  <div class="pure-g">
-    <div class="pure-u-2-3" id="stock-timeseries"></div>
-    <div class="pure-u-1-3">
-      <h2>Volume, price and twitter mentions</h2>
-      <p>If there is a relation between twitter sentiment and stock prices it could be reflected in the sheer number of mentions a stock gets on Twitter. Here the number of mentions and the.</p>
+    <div class="pure-g">
+      <div class="pure-u-2-3" id="stock-timeseries"></div>
+      <div class="pure-u-1-3">
+        <h2>Volume, price and twitter mentions</h2>
+        <p>If there is a relation between twitter sentiment and stock prices it could be reflected in the sheer number of mentions a stock gets on Twitter. Here the number of mentions and the.</p>
+      </div>
+    </div>
+    <div class="pure-g">
+      <div class="pure-u-2-3" id="bear-bull-area"></div>
+      <div class="pure-u-1-3" id="bear-bull-pie"></div>
     </div>
   </div>
   <script src="//d3js.org/d3.v3.min.js"></script>
   <script src="/static/js/c3.js"></script>
+  <script src="/static/js/jquery-2.1.4.min.js"></script>
   <script>
+    $('#select-stock').submit(function(e) {
+      symbol = $('#select-stock input:first').val();
+      $('#progress-indicator').addClass('progress');
+      $.get("/stock", {'symbol':symbol}, function(data) {
+        $('#progress-indicator').removeClass('progress');
+        chart.unload({
+          done: function () {
+            chart.load({columns:data.data});
+          }
+        });
+      });
+      return false;
+    });
 
+    // Show the volume / price data in a timeseries chart
     var chart = c3.generate({
       bindto: '#stock-timeseries',
       data: {
         x: 'x',
         // xFormat: '%Y%m%d', // 'xFormat' can be used as custom format of 'x'
-columns: [
-  ['x', '2013-01-01', '2013-01-02', '2013-01-03', '2013-01-04', '2013-01-05', '2013-01-06'],
-  //['x', '20130101', '20130102', '20130103', '20130104', '20130105', '20130106'],
-  ['data1', 30, 200, 100, 400, 150, 250],
-  ['data2', 130, 340, 200, 500, 250, 350]
-]
-},
-axis: {
-  x: {
-    type: 'timeseries',
-    tick: {
-      format: '%Y-%m-%d'
-    }
-  }
-}
-});
-
-    setTimeout(function () {
-      chart.load({
         columns: [
-        ['data3', 400, 500, 450, 700, 600, 500]
+          ['x', '2013-01-01', '2013-01-02', '2013-01-03', '2013-01-04', '2013-01-05', '2013-01-06'],
+          //['x', '20130101', '20130102', '20130103', '20130104', '20130105', '20130106'],
+          ['data1', 30, 200, 100, 400, 150, 250],
+          ['data2', 130, 340, 200, 500, 250, 350]
         ]
+        },
+        axis: {
+          x: {
+            type: 'timeseries',
+            tick: {
+              format: '%Y-%m-%d'
+            }
+          }
+        }
       });
-    }, 1000);
+
+    // Show the bear/bull ratio in  a pie chart
+    var weekly_bear_bull_breakdown = c3.generate({
+      bindto:'#bear-bull-pie',
+      data: {
+        // iris data from R
+        columns: [
+            ['data1', 30],
+            ['data2', 120],
+        ],
+        type : 'pie',
+        onclick: function (d, i) { console.log("onclick", d, i); },
+        onmouseover: function (d, i) { console.log("onmouseover", d, i); },
+        onmouseout: function (d, i) { console.log("onmouseout", d, i); }
+      }
+    });
+
+    // Show the tweet volume in a stacked area chart
+    var tweet_vol_chart = c3.generate({
+      bindto:'#bear-bull-area',
+      data: {
+          columns: [
+              ['data1', 300, 350, 300, 0, 0, 120],
+              ['data2', 130, 100, 140, 200, 150, 50]
+          ],
+          types: {
+              data1: 'area-spline',
+              data2: 'area-spline'
+              // 'line', 'spline', 'step', 'area', 'area-step' are also available to stack
+          },
+          groups: [['data1', 'data2']]
+      }
+    });
 
     var width = 960,
     height = 500;
