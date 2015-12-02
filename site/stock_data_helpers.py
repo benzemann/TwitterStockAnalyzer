@@ -202,6 +202,7 @@ def get_bull_bear_tweets_per_day(tweets):
 		if (old_day > day or old_day < day):
 			ratio = get_bear_bull(day_tweets)
 			bull_bear.append(ratio)
+			day_tweets = []
 			old_day = day
 	return bull_bear
 
