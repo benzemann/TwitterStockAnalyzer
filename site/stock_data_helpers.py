@@ -221,14 +221,14 @@ def get_dates_price_volume_tweetcount_lists(api, symbol):
 	tweet_volume = get_tweet_volume(tweets)
 	
 	bull_bear = get_bull_bear_tweets_per_day(tweets)
-	
+	users = [tweet.author.id_str for tweet in tweets]	
 	if (len(tweet_dates) != len(stock_data[0]) or 
 		len(tweet_dates) != len(stock_data[1]) or 
 		len(tweet_dates) != len(tweet_volume) or
 		len(tweet_dates) != len(bull_bear)
 		):
 		print 'Some of the lists are not of the same length!'
-	return [tweet_dates, stock_data[0], stock_data[1], tweet_volume, bull_bear]
+	return [tweet_dates, stock_data[0], stock_data[1], tweet_volume, [b[0] for b in bull_bear], [b[1] for b in bull_bear], users]
 
 def get_tweet_text_list(tweets):
 	tweet_text = []

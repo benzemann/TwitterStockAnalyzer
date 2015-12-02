@@ -32,11 +32,11 @@
       <div class="pure-u-4-24" id="node-data">
         <dl>
           <dt class="community-size">Nr. of members</dt>
-          <dd>100</dd>
+          <dd id="size_data">100</dd>
           <dt class="community-shared-stocks">Shared stocks</dt>
-          <dd>.45</dd>
+          <dd id="stocks_data">.45</dd>
           <dt class="community-clustering-coef">Clustering coef.</dt>
-          <dd>2.3</dd>
+          <dd id="cc_data">2.3</dd>
         </dl>
       </div>
       <div class="pure-u-8-24">
@@ -45,7 +45,10 @@
       </div>
     </div>
     <div class="pure-g">
-      <div class="pure-u-2-3" id="stock-timeseries"></div>
+      <div class="pure-u-2-3">
+        <div id="stock-timeseries"></div>
+        <div id="tweet_vol_chart"></div>
+      </div>
       <div class="pure-u-1-3">
         <h2>Volume, price and twitter mentions</h2>
         <p>If there is a relation between twitter sentiment and stock prices it could be reflected in the sheer number of mentions a stock gets on Twitter. Here the number of mentions and the.</p>
@@ -81,13 +84,14 @@
                     var tweet_vol = data[3];
                     var bullish = data[4];
                     var bearish = data[5];
-                    var neutral = ['neutral'];
-                    for (var i=1; i < dates.length; i++) {
-                      neutral[i] = tweet_vol[i] - bullish[i] - bearish[i] + 10;
-                    }
+                    var colors = data[6];
                     var bull_sum = bullish.slice(1,bullish.length).reduce(function(x,y) {return x+y;})
                     var bear_sum = bearish.slice(1,bearish.length).reduce(function(x,y) {return x+y;})
                     //chart.load({columns:data.data});
+                    svg.selectAll('.node')
+                    .style('fill', function(d) {
+                      return colors.indexOf(d.id) != -1 ? "#C00000":"#C0C0C0";
+                    })
                     weekly_bear_bull_breakdown.load({columns: [
                       ['bullish', bull_sum],
                       ['bearish', bear_sum]
@@ -95,13 +99,10 @@
                     tweet_vol_chart.load({
                       x: 'x',
                       columns:
-                        [dates, bullish, bearish, neutral],
+                        [dates, tweet_vol],
                       types: {
-                        bullish: 'area',
-                        bearish: 'area',
-                        neutral: 'area'
+                        tweet_vol: 'area'
                       },
-                      groups: [['bullish', 'bearish', 'neutral']],
                       axis: {
                         x: {
                           type: 'timeseries',
@@ -113,7 +114,30 @@
                           label: 'Tweet count'
                         }
                       }
-                      
+                    });
+                    bear_bull_chart.load({
+                      x: 'x',
+                      columns:
+                        [dates, bearish, bullish],
+                      types: {
+                        bearish: 'area',
+                        bullish: 'area'
+                      },
+                      axis: {
+                        x: {
+                          type: 'timeseries',
+                          tick: {
+                            format: '%Y-%m-%d'
+                          },
+                        },
+                        y: {
+                          label: 'Tweet count'
+                        }
+                      },
+                      colors: {
+                        bearish: '#ff0000',
+                        bullish: '#00ff00'
+                      }
                     });
                     stock_chart.load({
                       x: 'x',
@@ -199,22 +223,17 @@
 
     // Show the tweet volume in a stacked area chart
     var tweet_vol_chart = c3.generate({
-      bindto:'#bear-bull-area',
+      bindto:'#tweet_vol_chart',
       data: {
           x: 'x',
           columns: [
               ['x', '2013-01-01', '2013-01-02', '2013-01-03', '2013-01-04', '2013-01-05', '2013-01-06'],
-              ['bullish', 300, 350, 300, 0, 0, 120],
-              ['bearish', 300, 350, 300, 0, 0, 120],
-              ['neutral', 130, 100, 140, 200, 150, 50]
+              ['tweet_vol', 130, 100, 140, 200, 150, 50]
           ],
           types: {
-              bullish: 'area',
-              bearish: 'area',
-              neutral: 'area'
+              tweet_vol: 'area'
               // 'line', 'spline', 'step', 'area', 'area-step' are also available to stack
-          },
-          groups: [['bullish', 'bearish', 'neutral']]
+          }
       },
       axis: {
         x: {
@@ -229,6 +248,34 @@
       }
     });
 
+    // Show the tweet volume in a stacked area chart
+    var bear_bull_chart = c3.generate({
+      bindto:'#bear-bull-area',
+      data: {
+          x: 'x',
+          columns: [
+              ['x', '2013-01-01', '2013-01-02', '2013-01-03', '2013-01-04', '2013-01-05', '2013-01-06'],
+              ['bullish', 20, 10, 13, 0, 10, 17],
+              ['bearish', 10, 15, 17, 4, 13, 23]
+          ],
+          types: {
+              bullish: 'area',
+              bearish: 'area'
+              // 'line', 'spline', 'step', 'area', 'area-step' are also available to stack
+          }
+      },
+      axis: {
+        x: {
+          type: 'timeseries',
+          tick: {
+            format: '%Y-%m-%d'
+          }
+        },
+        y: {
+          label: 'Tweet volume'
+        }
+      }
+    });
     var width = 960,
     height = 500;
 
@@ -262,11 +309,23 @@
       .enter().append("circle")
       .attr("class", "node")
       .attr("r", function(d) {return (1+Math.log(d.size))*3})
-      .style("fill", function(d) { return color(d.group); })
+      .style("fill", function(d) { return "#C0C0C0"; })
+      .on('mouseover', function(d){
+        var nodeData = $("#node-data");
+        nodeData.find("#size_data").html(d.size);
+        nodeData.find("#cc_data").html(d.clust_coef.toFixed(2))
+        nodeData.find("#stocks_data").html(d.stocks);
+        nodeData.css("display: true")
+      })
+      .on('mouseout', function(d) {
+        var nodeData = $("#node-data");
+        nodeData.css("display:none")
+      })
       .call(force.drag);
 
       node.append("size")
-      .text(function(d) { return d.size; });
+      .text(function(d) { return d.size; });;
+      node.append("clustering_coefficient").text(function(d) {return d.clust_coef; })
 
       force.on("tick", function() {
         link.attr("x1", function(d) { return d.source.x; })

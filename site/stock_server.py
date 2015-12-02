@@ -1,7 +1,9 @@
 import cherrypy
+import pickle
 from mako.template import Template
 from mako.lookup import TemplateLookup
 import os
+import networkx as nx
 import tweepy
 import stock_data_helpers
 
@@ -14,15 +16,13 @@ screen_name1 = 'benzemann'
 
 auth = tweepy.AppAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
 api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
-class User():
-    def __init__(self, id):
-        self.id = id
-        pass
 
 class StockAnalyzer(object):
     def __init__(self):
         self.auth = tweepy.AppAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
         self.api = tweepy.API(auth)
+        self.graph = pickle.load(open('static/data/community_graph.pickle', 'r'))
+        self.inverse_communities = pickle.load(open('static/data/inverse_com.pickle', 'r'))
 
     @cherrypy.expose
     def index(self):
@@ -32,18 +32,20 @@ class StockAnalyzer(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     def stock(self, symbol):
-        data = stock_data_helpers.get_dates_price_volume_tweetcount_lists(self.api, symbol)
-        bull_bear = data[4]
-        data[0].insert(0,'x')
-        data[1].insert(0,'price')
-        data[2].insert(0,'volume')
-        data[3].insert(0,'tweet volume')
-        data[4] = [b[0] for b in bull_bear]
-        data[4].insert(0, 'bullish')
-        data.append([b[1] for b in bull_bear])
-        data[5].insert(0, 'bearish')
 
-        return {'data': data}
+        response = stock_data_helpers.get_dates_price_volume_tweetcount_lists(self.api, symbol)
+
+        users = response[6]
+        active_communities = set([com for com, members in self.inverse_communities.iteritems() for user in members if user in users])
+        response[0].insert(0,'x')
+        response[1].insert(0,'price')
+        response[2].insert(0,'volume')
+        response[3].insert(0,'tweet volume')
+        response[4].insert(0, 'bullish')
+        response[5].insert(0, 'bearish')
+        response[6] = list(active_communities)
+
+        return {'data': response}
 
 if __name__ == '__main__':
     static_dir = os.path.dirname(os.path.abspath(__file__))
