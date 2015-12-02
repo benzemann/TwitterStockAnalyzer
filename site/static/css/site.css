@@ -2,20 +2,29 @@
 	height: 100%;
 }
 
+#stocks_data {
+	max-height: 300px;
+	overflow-y: scroll;
+
+}
+#shared-stocks {
+}
+
 dl {
-	margin: 100px 10px;
 }
 
 dt {
 	float: left;
 	text-align: left;
-	padding: 0 10px;
+	margin: 0px;
+	width: 70%;
 }
 
 dd {
 	float: right;
 	text-align: right;
-	padding: 0 10px;
+	margin: 0px;
+	width: 30%;
 }
 
 #node-data {
