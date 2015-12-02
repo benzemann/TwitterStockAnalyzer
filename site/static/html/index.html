@@ -22,13 +22,24 @@
   <div class="container">
     <form class="pure-form" id="select-stock">
       <legend>Select a stock symbol to search for</legend>
-      <input type="text" placeholder="$AAPL">
+      <input type="text" placeholder="GE">
       <button type="submit" class="pure-button pure-button-primary">Get data</button>
     </form>
     <div id="progress-indicator"></div>
     <div class="pure-g">
-      <div class="pure-u-2-3" id="user-graph"></div>
-      <div class="pure-u-1-3">
+      <div class="pure-u-12-24" id="user-graph">
+      </div>
+      <div class="pure-u-4-24" id="node-data">
+        <dl>
+          <dt class="community-size">Nr. of members</dt>
+          <dd>100</dd>
+          <dt class="community-shared-stocks">Shared stocks</dt>
+          <dd>.45</dd>
+          <dt class="community-clustering-coef">Clustering coef.</dt>
+          <dd>2.3</dd>
+        </dl>
+      </div>
+      <div class="pure-u-8-24">
         <h2>Twitters stock advertisers</h2>
         <p>Twitter has a large base of users that simply talk about and promote stock. By looking at what stocks they tweet about we find that some of the most frequent tweeters are related to each other in that they always tweet about the same stocks. This possibly means that these twitter acounts are either fakes, paid to promote specific stocks or connected in a community of interest.</p>
       </div>
@@ -53,10 +64,80 @@
       symbol = $('#select-stock input:first').val();
       $('#progress-indicator').addClass('progress');
       $.get("/stock", {'symbol':symbol}, function(data) {
+        console.log(data)
+        var self = this;
+        self.data = data;
         $('#progress-indicator').removeClass('progress');
-        chart.unload({
-          done: function () {
-            chart.load({columns:data.data});
+        stock_chart.unload({
+          done: function() {
+            weekly_bear_bull_breakdown.unload({
+              done: function() {
+                tweet_vol_chart.unload({
+                  done: function () {
+                    var data = self.data.data
+                    var dates = data[0];
+                    var price = data[1];
+                    var volume = data[2];
+                    var tweet_vol = data[3];
+                    var bullish = data[4];
+                    var bearish = data[5];
+                    var neutral = ['neutral'];
+                    for (var i=1; i < dates.length; i++) {
+                      neutral[i] = tweet_vol[i] - bullish[i] - bearish[i] + 10;
+                    }
+                    var bull_sum = bullish.slice(1,bullish.length).reduce(function(x,y) {return x+y;})
+                    var bear_sum = bearish.slice(1,bearish.length).reduce(function(x,y) {return x+y;})
+                    //chart.load({columns:data.data});
+                    weekly_bear_bull_breakdown.load({columns: [
+                      ['bullish', bull_sum],
+                      ['bearish', bear_sum]
+                    ]});
+                    tweet_vol_chart.load({
+                      x: 'x',
+                      columns:
+                        [dates, bullish, bearish, neutral],
+                      types: {
+                        bullish: 'area',
+                        bearish: 'area',
+                        neutral: 'area'
+                      },
+                      groups: [['bullish', 'bearish', 'neutral']],
+                      axis: {
+                        x: {
+                          type: 'timeseries',
+                          tick: {
+                            format: '%Y-%m-%d'
+                          }
+                        },
+                        y: {
+                          label: 'Tweet count'
+                        }
+                      }
+                      
+                    });
+                    stock_chart.load({
+                      x: 'x',
+                      columns: [dates, price, volume],
+                      axes: {
+                        volume: 'y2'
+                      },
+                      types: {
+                        price: 'line',
+                        volume: 'bar'
+                      },
+                      axis: {
+                        y2: {
+                          label: 'Traded volume'
+                        },
+                        y: {
+                          label: 'Price [$]'
+                        }
+                      }
+                    });
+                  }
+                });
+              }
+            });
           }
         });
       });
@@ -64,7 +145,7 @@
     });
 
     // Show the volume / price data in a timeseries chart
-    var chart = c3.generate({
+    var stock_chart = c3.generate({
       bindto: '#stock-timeseries',
       data: {
         x: 'x',
@@ -72,17 +153,31 @@
         columns: [
           ['x', '2013-01-01', '2013-01-02', '2013-01-03', '2013-01-04', '2013-01-05', '2013-01-06'],
           //['x', '20130101', '20130102', '20130103', '20130104', '20130105', '20130106'],
-          ['data1', 30, 200, 100, 400, 150, 250],
-          ['data2', 130, 340, 200, 500, 250, 350]
-        ]
+          ['price', 30, 200, 100, 400, 150, 250],
+          ['volume', 130, 340, 200, 500, 250, 350]
+        ],
+        axes: {
+          volume: 'y2'
         },
+        types: {
+          price: 'line',
+          volume: 'bar'
+        }
+      },
         axis: {
+          y2: {
+            show: true,
+            label: 'Traded volume'
+          },
+          y: {
+            label: 'Price [$]'
+          },
           x: {
             type: 'timeseries',
             tick: {
               format: '%Y-%m-%d'
             }
-          }
+          },
         }
       });
 
@@ -106,16 +201,31 @@
     var tweet_vol_chart = c3.generate({
       bindto:'#bear-bull-area',
       data: {
+          x: 'x',
           columns: [
-              ['data1', 300, 350, 300, 0, 0, 120],
-              ['data2', 130, 100, 140, 200, 150, 50]
+              ['x', '2013-01-01', '2013-01-02', '2013-01-03', '2013-01-04', '2013-01-05', '2013-01-06'],
+              ['bullish', 300, 350, 300, 0, 0, 120],
+              ['bearish', 300, 350, 300, 0, 0, 120],
+              ['neutral', 130, 100, 140, 200, 150, 50]
           ],
           types: {
-              data1: 'area-spline',
-              data2: 'area-spline'
+              bullish: 'area',
+              bearish: 'area',
+              neutral: 'area'
               // 'line', 'spline', 'step', 'area', 'area-step' are also available to stack
           },
-          groups: [['data1', 'data2']]
+          groups: [['bullish', 'bearish', 'neutral']]
+      },
+      axis: {
+        x: {
+          type: 'timeseries',
+          tick: {
+            format: '%Y-%m-%d'
+          }
+        },
+        y: {
+          label: 'Tweet volume'
+        }
       }
     });
 
@@ -125,15 +235,15 @@
     var color = d3.scale.category20();
 
     var force = d3.layout.force()
-    .charge(-120)
-    .linkDistance(30)
+    .charge(-60)
+    .linkDistance(200)
     .size([width, height]);
 
     var svg = d3.select("#user-graph").append("svg")
     .attr("width", width)
     .attr("height", height);
 
-    d3.json("static/data/miserables.json", function(error, graph) {
+    d3.json("static/data/induced_communities.json", function(error, graph) {
       if (error) throw error;
 
       force
@@ -151,12 +261,12 @@
       .data(graph.nodes)
       .enter().append("circle")
       .attr("class", "node")
-      .attr("r", 5)
+      .attr("r", function(d) {return (1+Math.log(d.size))*3})
       .style("fill", function(d) { return color(d.group); })
       .call(force.drag);
 
-      node.append("title")
-      .text(function(d) { return d.name; });
+      node.append("size")
+      .text(function(d) { return d.size; });
 
       force.on("tick", function() {
         link.attr("x1", function(d) { return d.source.x; })
@@ -164,8 +274,8 @@
         .attr("x2", function(d) { return d.target.x; })
         .attr("y2", function(d) { return d.target.y; });
 
-        node.attr("cx", function(d) { return d.x; })
-        .attr("cy", function(d) { return d.y; });
+        node.attr("cx", function(d) { return d.x = Math.max(15, Math.min(width - 15, d.x)); })
+        .attr("cy", function(d) { return d.y = Math.max(15, Math.min(height - 15, d.y)); })
       });
     });
 
