@@ -33,10 +33,16 @@ class StockAnalyzer(object):
     @cherrypy.tools.json_out()
     def stock(self, symbol):
         data = stock_data_helpers.get_dates_price_volume_tweetcount_lists(self.api, symbol)
+        bull_bear = data[4]
         data[0].insert(0,'x')
         data[1].insert(0,'price')
-        data[2].insert(0,'stock volume')
+        data[2].insert(0,'volume')
         data[3].insert(0,'tweet volume')
+        data[4] = [b[0] for b in bull_bear]
+        data[4].insert(0, 'bullish')
+        data.append([b[1] for b in bull_bear])
+        data[5].insert(0, 'bearish')
+
         return {'data': data}
 
 if __name__ == '__main__':
