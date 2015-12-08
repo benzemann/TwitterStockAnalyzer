@@ -32,16 +32,18 @@
       <div class="pure-u-4-24" id="node-data">
         <dl>
           <dt class="community-size">Nr. of members</dt>
-          <dd id="size_data">100</dd>
-          <dt class="community-shared-stocks">Shared stocks</dt>
-          <dd id="stocks_data">.45</dd>
+          <dd id="size_data"></dd>
           <dt class="community-clustering-coef">Clustering coef.</dt>
-          <dd id="cc_data">2.3</dd>
+          <dd id="cc_data"></dd>
         </dl>
+        <br>
+          <div class="community-shared-stocks">Shared stocks
+          <dl id="stocks_data"></dl>
+          </div>
       </div>
       <div class="pure-u-8-24">
         <h2>Twitters stock advertisers</h2>
-        <p>Twitter has a large base of users that simply talk about and promote stock. By looking at what stocks they tweet about we find that some of the most frequent tweeters are related to each other in that they always tweet about the same stocks. This possibly means that these twitter acounts are either fakes, paid to promote specific stocks or connected in a community of interest.</p>
+        <p>Twitter has a large base of users that simply talk about and promote stock. By looking at what stocks they tweet about we find that some of the most frequent tweeters are related to each other in that tweet a lot about the same stocks. We group them in communities that can be seen on the left. Each circle is a group of tweeters, the size of the circle is determined by how many members they have and two communities are connected if they have shared tweets.</p>
       </div>
     </div>
     <div class="pure-g">
@@ -313,8 +315,13 @@
       .on('mouseover', function(d){
         var nodeData = $("#node-data");
         nodeData.find("#size_data").html(d.size);
-        nodeData.find("#cc_data").html(d.clust_coef.toFixed(2))
-        nodeData.find("#stocks_data").html(d.stocks);
+        nodeData.find("#cc_data").html(d.clust_coef.toFixed(4));
+        nodeData.find("#stocks_data").html("");
+        stocks_list = "";
+        for (var k in d.stocks) {
+          stocks_list+="<dt>"+k+"</dt><dd>"+d.stocks[k].toFixed(4)+"</dd>"
+        }
+        nodeData.find("#stocks_data").html(stocks_list);
         nodeData.css("display: true")
       })
       .on('mouseout', function(d) {
