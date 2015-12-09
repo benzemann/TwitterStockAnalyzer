@@ -10,6 +10,16 @@
 #shared-stocks {
 }
 
+nav {
+	min-height: 50px;
+	text-align: center;
+	padding: 0 0 10px 0;
+}
+
+nav a {
+	margin: 0 5px;
+}
+
 dl {
 }
 
@@ -33,6 +43,10 @@ dd {
 .container {
 	width: 80%;
 	margin: 0 auto;
+}
+
+.container p {
+	margin: 0 10px;
 }
 /**
  * (C)Leanest CSS spinner ever

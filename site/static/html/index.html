@@ -20,62 +20,130 @@
 </head>
 <body>
   <div class="container">
+  <nav>
+    <h1>Twitter Stock Bot</h1>
+    <a href="#about"> About </a>
+    <a href="#select-stock">App</a>
+  </nav>
+  <div class="pure-g" style="border-bottom: solid 1px; padding-bottom: 10px;">
+    <div class="pure-u-8-24">
     <form class="pure-form" id="select-stock">
       <legend>Select a stock symbol to search for</legend>
       <input type="text" placeholder="GE">
       <button type="submit" class="pure-button pure-button-primary">Get data</button>
     </form>
     <div id="progress-indicator"></div>
+    </div>
+    <div class="pure-u-16-24">
+    <p>
+      Type in a stock symbol in the search box and press the button to fetch data. Stock symbols are abbreviations used on the american stock exchanges such as GE for General Electric, NETE for Net Elements or YHOO for Yahoo. You can hover over the nodes in the graph if you need inspiration.
+    </p>
+    </div>
+    <div class="pure-u-2-3">
+      
+    </div>
+  </div>
     <div class="pure-g">
       <div class="pure-u-12-24" id="user-graph">
       </div>
       <div class="pure-u-4-24" id="node-data">
+      <div style="width:100%; height:50px;">
         <dl>
           <dt class="community-size">Nr. of members</dt>
           <dd id="size_data"></dd>
           <dt class="community-clustering-coef">Clustering coef.</dt>
           <dd id="cc_data"></dd>
         </dl>
+        </div>
         <br>
           <div class="community-shared-stocks">Shared stocks
-          <dl id="stocks_data"></dl>
+          <dl id="stocks_data">
+          </dl>
+
           </div>
       </div>
       <div class="pure-u-8-24">
         <h2>Twitters stock advertisers</h2>
-        <p>Twitter has a large base of users that simply talk about and promote stock. By looking at what stocks they tweet about we find that some of the most frequent tweeters are related to each other in that tweet a lot about the same stocks. We group them in communities that can be seen on the left. Each circle is a group of tweeters, the size of the circle is determined by how many members they have and two communities are connected if they have shared tweets.</p>
+        <p>Twitter has a large base of users that simply talk about and promote stock. By looking at what stocks they tweet about we find that some of the most frequent tweeters are related to each other in that tweet a lot about the same stocks. We group them in communities that can be seen on the left. Each circle is a group of tweeters, the size of the circle is determined by how many members they have and two communities are connected if they have shared tweets. If a specific community tweeted about a stock it will be marked with red.</p>
+        <p>Hover over any group to see the number of members of that community, their average clustering coefficient which measures how connected the members of the community are on a scale from 0 to 1 and a list of all the stocks the community tweeted about as well as how many people in the community that tweeted about that stock.</p>
+        <p>We do not use this information directly in our predictions, but inspecting the communities directly reveals interesting results. Some seem to be clustered mainly by chance sharing only a single stock, a few that seem to be industry comminities where people only talk about pharmaceutical companies for instance and some seem only to talk about stocks with a low price.</p>
       </div>
     </div>
     <div class="pure-g">
       <div class="pure-u-2-3">
         <div id="stock-timeseries"></div>
-        <div id="tweet_vol_chart"></div>
       </div>
       <div class="pure-u-1-3">
-        <h2>Volume, price and twitter mentions</h2>
-        <p>If there is a relation between twitter sentiment and stock prices it could be reflected in the sheer number of mentions a stock gets on Twitter. Here the number of mentions and the.</p>
+        <h2>Volume and stock price</h2>
+        <p>Here the number of shares sold on any given day where the stock exchange is open is shown along with the closing share price. Most mathematical predictions of the stock market takes these two factors into account by saying that the stock price tomorrow is somehow dependent on the stock price today combined with the number of stocks bought and sold. This is the model we want to see if we can improve by combining it with how many people that are tweeting about a specific stock.</p>
+      </div>
+    </div>
+    <div class="pure-g">
+      <div class="pure-u-2-3">
+          <div id="tweet_vol_chart"></div> 
+      </div>
+      <div class="pure-u-1-3">
+        <h2>Tweet volume</h2>
+        <p>
+          Here we see how many people that have mentioned this particular stock the past week. The reason for it only being for one week is that Twitter only allows for fetching stocks younger than seven days. For most stocks we can see that Twitter reacts to the price of the stock, so if there is a large change in price there will be a lot of people talking about it. Apart from that we also see that if more people are talking about a stock than the day before, then there is a larger than average chance of that stock rising.
+        </p>
       </div>
     </div>
     <div class="pure-g">
       <div class="pure-u-2-3" id="bear-bull-area"></div>
-      <div class="pure-u-1-3" id="bear-bull-pie"></div>
+      <div class="pure-u-1-3">
+      <h3>Tweet sentiment</h3>
+      <p>Instead of just looking at the number of tweets about a specific stock, we look at what the tweet is trying to communicate. To do that tweets are classified as "bullish" if the tweeter believes the stock will rise and "bearish" if they do not. Since not all tweets can be classified it gives us a much lower total amount of tweets, but adding the sentiment helps with the prediction and using the ratio of bullish and bearish tweets to predict if the stock will rise tomorrow has better acccuracy than only looking at tweets.</p></div>
+    </div>
+    <div id="about"><h1>About</h1>
+
+      <h2>What is Twitter Stock Analyser?</h2>
+      <p>Twitter Stock Analyser allows you to find out what's the sentiment on Twitter for a given stock: bullish, if there's a feeling the stock price will go up, or bearish otherwise.
+
+      This project was developed within the DTU course Social Graphs and Interactions and aims at applying networking and natural language processing tools.</p>
+
+      <h2>How does it work?</h2>
+
+      <h3>Data Collection</h3>
+
+      <p>We collect our data using the API from two different sources: Twitter, for the sentiment data and user network, and Yahoo Finance, for market data.</p>
+
+      <h3>Twitter User Community Network</h3>
+
+      <p>Starting from a base of 180000 tweets mentioning stocks, we built a network of hundreds of Twitter users that were connected if they had mentioned the same stock. We then calculated the best community partition of the graph. The result is a network of communities of users that often tweet about the same stocks.</p>
+
+      <h3>Stock Sentiment</h3>
+
+      You start by searching for a stock symbol (e.g. \$AAPL for Apple). From here, all tweets mentioning this stock in a period of a week are collected and processed.
+
+      Sentiment on a stock can either be bullish or bearish. People who are bullish (the "bulls", for short) feel optimistic that stock price will go up and show intention of investing in it. Bearish people (the "bears"), on the other hand, feel the stock will lose value and want to sell. If you want to learn more about these terms, check out <a href="http://www.investopedia.com/video/play/what-are-bull-and-bear-markets/" >this animation</a>.
+
+
+      Sentiment analysis is done using a lexicon (i.e. a dictionary) we built containing the most frequently used bearish and bullish words, associated with scores of +1 and -1 respectively. The sentiment for each tweet is calculated summing the scores for each word from the lexicon it contains and checking if the result is positive or negative.
+
+      <h2>Does it work?</h2>
+        Is Twitter Stock Analyser a revolutionary tool that will allow you to predict the stock market? No. Does it prove that Twitter sentiment and the stock market are correlated? Yes!
     </div>
   </div>
   <script src="//d3js.org/d3.v3.min.js"></script>
   <script src="/static/js/c3.js"></script>
   <script src="/static/js/jquery-2.1.4.min.js"></script>
   <script>
-    $('#select-stock').submit(function(e) {
-      symbol = $('#select-stock input:first').val();
+    var fetch_stock = function(symbol) {
       $('#progress-indicator').addClass('progress');
       $.get("/stock", {'symbol':symbol}, function(data) {
+        if (data.status == 500) {
+          $('#progress-indicator').removeClass('progress');
+          alert("Server error returned, please make sure it's a correct stock symbol you're using (also, sorry for the ugly error message)");
+          return false;
+        }
         console.log(data)
         var self = this;
         self.data = data;
         $('#progress-indicator').removeClass('progress');
         stock_chart.unload({
           done: function() {
-            weekly_bear_bull_breakdown.unload({
+            bear_bull_chart.unload({
               done: function() {
                 tweet_vol_chart.unload({
                   done: function () {
@@ -89,21 +157,31 @@
                     var colors = data[6];
                     var bull_sum = bullish.slice(1,bullish.length).reduce(function(x,y) {return x+y;})
                     var bear_sum = bearish.slice(1,bearish.length).reduce(function(x,y) {return x+y;})
+                    var non_trading_indices = [];
+                    for (var i = 0; i < dates.length; i++) {
+                      if (price[i] == 0)
+                        non_trading_indices.push(i);
+                    }
+                    var trading_dates = dates.map(function(e,i,a) {return non_trading_indices.indexOf(i) != -1 ? e : e;});
+                    var trading_price = price.map(function(e,i,a) {return non_trading_indices.indexOf(i) != -1 ? null : e;});
+                    var trading_volume = volume.map(function(e,i,a) {return non_trading_indices.indexOf(i) != -1 ? null : e;});
                     //chart.load({columns:data.data});
                     svg.selectAll('.node')
                     .style('fill', function(d) {
                       return colors.indexOf(d.id) != -1 ? "#C00000":"#C0C0C0";
-                    })
-                    weekly_bear_bull_breakdown.load({columns: [
-                      ['bullish', bull_sum],
-                      ['bearish', bear_sum]
-                    ]});
-                    tweet_vol_chart.load({
+                    });
+                    bear_bull_chart.load({
                       x: 'x',
                       columns:
-                        [dates, tweet_vol],
+                        [dates, bearish, bullish, trading_price],
+                      axes: {
+                        bearish: 'y2',
+                        bullish: 'y2',
+                        trading_price: 'y'
+                      },
                       types: {
-                        tweet_vol: 'area'
+                        bearish: 'bar',
+                        bullish: 'bar'
                       },
                       axis: {
                         x: {
@@ -113,26 +191,9 @@
                           }
                         },
                         y: {
-                          label: 'Tweet count'
-                        }
-                      }
-                    });
-                    bear_bull_chart.load({
-                      x: 'x',
-                      columns:
-                        [dates, bearish, bullish],
-                      types: {
-                        bearish: 'area',
-                        bullish: 'area'
-                      },
-                      axis: {
-                        x: {
-                          type: 'timeseries',
-                          tick: {
-                            format: '%Y-%m-%d'
-                          },
+                          label: 'Price [$]'
                         },
-                        y: {
+                        y2: {
                           label: 'Tweet count'
                         }
                       },
@@ -141,9 +202,40 @@
                         bullish: '#00ff00'
                       }
                     });
+
+                    tweet_vol_chart.load({
+                      x: 'x',
+                      columns:
+                        [dates, tweet_vol, trading_price],
+                      axes: {
+                        tweet_vol: 'y2',
+                        trading_price: 'y'
+                      },
+                      types: {
+                        tweet_vol: 'bar'
+                      },
+                      axis: {
+                        x: {
+                          type: 'timeseries',
+                          tick: {
+                            format: '%Y-%m-%d'
+                          }
+                        },
+                        y: {
+                          label: 'Price [$]'
+                        },
+                        y2: {
+                          label: 'Tweet count'
+                        }
+                      },
+                      colors: {
+                        tweet_vol: '#00ff00'
+                      }
+                    });
+
                     stock_chart.load({
                       x: 'x',
-                      columns: [dates, price, volume],
+                      columns: [dates, trading_price, trading_volume],
                       axes: {
                         volume: 'y2'
                       },
@@ -152,6 +244,12 @@
                         volume: 'bar'
                       },
                       axis: {
+                        x: {
+                          type: 'timeseries',
+                          tick: {
+                            format: '%Y-%m-%d'
+                          }
+                        },
                         y2: {
                           label: 'Traded volume'
                         },
@@ -167,6 +265,11 @@
           }
         });
       });
+    };
+
+    $('#select-stock').submit(function(e) {
+      symbol = $('#select-stock input:first').val();
+      fetch_stock(symbol);
       return false;
     });
 
@@ -207,22 +310,6 @@
         }
       });
 
-    // Show the bear/bull ratio in  a pie chart
-    var weekly_bear_bull_breakdown = c3.generate({
-      bindto:'#bear-bull-pie',
-      data: {
-        // iris data from R
-        columns: [
-            ['data1', 30],
-            ['data2', 120],
-        ],
-        type : 'pie',
-        onclick: function (d, i) { console.log("onclick", d, i); },
-        onmouseover: function (d, i) { console.log("onmouseover", d, i); },
-        onmouseout: function (d, i) { console.log("onmouseout", d, i); }
-      }
-    });
-
     // Show the tweet volume in a stacked area chart
     var tweet_vol_chart = c3.generate({
       bindto:'#tweet_vol_chart',
@@ -230,10 +317,15 @@
           x: 'x',
           columns: [
               ['x', '2013-01-01', '2013-01-02', '2013-01-03', '2013-01-04', '2013-01-05', '2013-01-06'],
+               ['price', 220, 200, 180, 234, 190, 250],
               ['tweet_vol', 130, 100, 140, 200, 150, 50]
           ],
+          axes: {
+            price: 'y',
+            tweet_vol: 'y2'
+          },
           types: {
-              tweet_vol: 'area'
+              tweet_vol: 'bar'
               // 'line', 'spline', 'step', 'area', 'area-step' are also available to stack
           }
       },
@@ -245,7 +337,11 @@
           }
         },
         y: {
-          label: 'Tweet volume'
+          label: 'Price [$]'
+        },
+        y2: {
+          label: 'Tweet volume',
+          show: true
         }
       }
     });
@@ -257,12 +353,18 @@
           x: 'x',
           columns: [
               ['x', '2013-01-01', '2013-01-02', '2013-01-03', '2013-01-04', '2013-01-05', '2013-01-06'],
+              ['price', 30, 200, 100, 400, 150, 250],
               ['bullish', 20, 10, 13, 0, 10, 17],
               ['bearish', 10, 15, 17, 4, 13, 23]
           ],
+          axes: {
+            price: 'y',
+            bullish: 'y2',
+            bearish: 'y2'
+          },
           types: {
-              bullish: 'area',
-              bearish: 'area'
+              bullish: 'bar',
+              bearish: 'bar'
               // 'line', 'spline', 'step', 'area', 'area-step' are also available to stack
           }
       },
@@ -274,7 +376,11 @@
           }
         },
         y: {
-          label: 'Tweet volume'
+          label: 'Price [$]'
+        },
+        y2: {
+          label: 'Tweet volums',
+          show: true
         }
       }
     });
@@ -318,8 +424,13 @@
         nodeData.find("#cc_data").html(d.clust_coef.toFixed(4));
         nodeData.find("#stocks_data").html("");
         stocks_list = "";
+        var sortable=[];
         for (var k in d.stocks) {
-          stocks_list+="<dt>"+k+"</dt><dd>"+d.stocks[k].toFixed(4)+"</dd>"
+          sortable.push([k, d.stocks[k]]);
+        }
+        sortable.sort(function(a,b) {return b[1]-a[1]})
+        for (var k=0; k < sortable.length; k++) {
+          stocks_list+="<dt>"+sortable[k][0]+"</dt><dd>"+Math.round(sortable[k][1].toFixed(4)*d.size)+"</dd>"
         }
         nodeData.find("#stocks_data").html(stocks_list);
         nodeData.css("display: true")

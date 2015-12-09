@@ -1,0 +1,7 @@
+tweepy > 0
+BeautifulSoup >0 
+cherrypy>0
+Mako>0
+networkx>0
+yahoo_finance>0
+requests>0
